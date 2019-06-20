@@ -1,0 +1,30 @@
+BootStrap: docker
+From: ubuntu:18.04
+
+# To run in this shell pointing to the data in deepglobe, you can execute
+# singularity shell -B /network/tmp1/sankarak/deepglobe/:data superresolution.sif
+# from inside the Mila cluster
+#
+# Note that this recipe can only be built on a machine where you are root, the
+# build command is
+# shell -B $HOME/conditional_unet:/home $SCRATCH/images/conditional_unet.sif
+
+%post
+    apt -y update
+    apt -y upgrade
+    apt -y install software-properties-common
+    apt -y install vim unzip wget sudo
+    add-apt-repository ppa:ubuntugis/ubuntugis-unstable
+    apt -y update
+    apt -y install build-essential libssl-dev libffi-dev python3-dev
+    apt -y install libsm6
+    apt -y install python3-pip python3-tk
+    pip3 install --no-cache-dir numpy pandas scikit-learn opencv-python
+    pip3 install --no-cache-dir nltk allennlp
+    pip3 install --no-cache-dir torch torchvision torchtext matplotlib ipython
+
+
+%environment
+
+%runscript
+
