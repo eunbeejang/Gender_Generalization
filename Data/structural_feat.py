@@ -46,10 +46,10 @@ class structFeat(object):
         #print([sum(tense.dict.get(i) == j for j in all) for i in tense_dict.keys()])
 
     def count_tense(self):
-        full = np.where((csv_data['Confidence'] == 1.0000) & (csv_data['Final Label'] == 1))[0]
-        two_third = np.where((csv_data['Confidence'] != 1.0000) & (csv_data['Final Label'] == 1))[0]
-        one_third = np.where((csv_data['Confidence'] != 1.0000) & (csv_data['Final Label'] == 0))[0]
-        zero = np.where((csv_data['Confidence'] == 1.0000) & (csv_data['Final Label'] == 0))[0]
+        full = np.where((self.data['Confidence'] == 1.0000) & (self.data['Final Label'] == 1))[0]
+        two_third = np.where((self.data['Confidence'] != 1.0000) & (self.data['Final Label'] == 1))[0]
+        one_third = np.where((self.data['Confidence'] != 1.0000) & (self.data['Final Label'] == 0))[0]
+        zero = np.where((self.data['Confidence'] == 1.0000) & (self.data['Final Label'] == 0))[0]
         return len(full), len(two_third), len(one_third), len(zero)
 
 
@@ -61,7 +61,7 @@ def main():
     args = parser.parse_args()
 
     analyzer = structFeat(args.filename)
-    all_trees = analyzer.analyze
+    all_trees = analyzer.analyze()
     #print(all_trees[:10])
 
 
