@@ -54,14 +54,11 @@ class structFeat(object):
             return ''
 
     def count_tense(self, trees):
-        print(trees[6])
         full = np.where((self.data['Confidence'] == 1.0000) & (self.data['Final Label'] == 1))[0]
-        print(full)
         two_third = np.where((self.data['Confidence'] != 1.0000) & (self.data['Final Label'] == 1))[0]
         one_third = np.where((self.data['Confidence'] != 1.0000) & (self.data['Final Label'] == 0))[0]
         zero = np.where((self.data['Confidence'] == 1.0000) & (self.data['Final Label'] == 0))[0]
-        print([Counter([self.tense(trees[i]) for i in j]) for j in [full,two_third,one_third,zero]])
-        #print(Counter[ ifor i in full])
+        return([Counter([self.tense(trees[i]) for i in j]) for j in g[full,two_third,one_third,zero]])
 
 
 
