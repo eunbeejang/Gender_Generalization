@@ -8,16 +8,19 @@ import re
 class structFeat(object):
     def __init__(self, file_path):
         self.predictor = Predictor.from_path("https://s3-us-west-2.amazonaws.com/allennlp/models/elmo-constituency-parser-2018.03.14.tar.gz")
-        self.data = pd.read_csv(file_path)
+        self.data = pd.read_csv(file_path)[:10]
 
     def load_all(self): # load all sentences as constituency tree
         return [self.constituency_tree(i) for i in self.data['Sentence']]
 
     def analyze(self):
         all_trees = self.load_all()
-        tense_result = count_tense()
+        #print(self.data['Sentence'][6])
+        #self.tense(all_trees[6])
+        #[self.tense(i) for i in all_trees]
+        tense_result = self.count_tense(all_trees)
 
-
+    #------------------------------ break into different obj later
     def constituency_tree(self, sent):
         pred = self.predictor.predict(sentence=sent)
         # pred.keys() >> ['class_probabilities', 'spans', 'tokens', 'pos_tags', 'num_spans', 'hierplane_tree', 'trees']
@@ -32,6 +35,7 @@ class structFeat(object):
                 start = stack.pop()
                 yield (len(stack), string[start + 1: i])
 
+    #------------------------------ break into different obj later
 
     def tense(self, constTree):
         tense_dict = {'VB':'base',
@@ -42,15 +46,24 @@ class structFeat(object):
                     'VBZ':'present tense 3rd.sg'}
 
         VP = [i[1] for i in constTree if i[1][0] == 'VP']
-        yield [[re.sub('\(', '',j) for j in i if re.sub('\(', '',j) in verb_lst][0] for i in VP][0]       
+        try:
+            return [[re.sub('\(', '',j) for j in i if re.sub('\(', '',j) in tense_dict][0] for i in VP][0]       
         #print([sum(tense.dict.get(i) == j for j in all) for i in tense_dict.keys()])
+        except:
+            #print("nan")
+            return ''
 
-    def count_tense(self):
+    def count_tense(self, trees):
+        print(trees[6])
         full = np.where((self.data['Confidence'] == 1.0000) & (self.data['Final Label'] == 1))[0]
+        print(full)
         two_third = np.where((self.data['Confidence'] != 1.0000) & (self.data['Final Label'] == 1))[0]
         one_third = np.where((self.data['Confidence'] != 1.0000) & (self.data['Final Label'] == 0))[0]
         zero = np.where((self.data['Confidence'] == 1.0000) & (self.data['Final Label'] == 0))[0]
-        return len(full), len(two_third), len(one_third), len(zero)
+        print([Counter([self.tense(trees[i]) for i in j]) for j in [full,two_third,one_third,zero]])
+        #print(Counter[ ifor i in full])
+
+
 
 
 
