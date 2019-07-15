@@ -39,9 +39,27 @@ class structFeat(object):
         self.tree_predictor = Predictor.from_path(pretrained_tree_path)
         self.coref_predictor = Predictor.from_path(pretrained_coref_path)
 
-        self.data = pd.read_csv(file_path)
+        self.data = pd.read_csv(file_path)[:20]
         self.lemmatizer = WordNetLemmatizer() 
         self.NP_pattern = []
+
+
+    def tree_parser(self, sent): # Parse const tree by depth -> returns (depth level, tree content)
+
+        pred = self.tree_predictor.predict(sentence=sent)
+        # pred.keys() >>> ['class_probabilities', 'spans', 'tokens', 'pos_tags', 'num_spans', 'hierplane_tree', 'trees']
+        return ([([i[0], (''.join(i[1]).split())]) for i in list(self.parse(list(pred['trees'])))], pred) 
+
+
+    def parse(self, string): # Parsing str as stack-pop
+
+        stack = []
+        for i, char in enumerate(string):
+            if char == '(':
+                stack.append(i)
+            elif char == ')' and stack:
+                start = stack.pop()
+                yield (len(stack), string[start + 1: i])
 
 
     def load_all(self, which='trees'): # Load all coref and trees
@@ -77,26 +95,18 @@ class structFeat(object):
             return ("ADVERB", [Counter([(adverb.get_adv(trees[i], coref[i])) for i in j]) for j in [full,two_third,one_third,zero]])
         
 
-
-    def tree_parser(self, sent): # Parse const tree by depth -> returns (depth level, tree content)
-
-        pred = self.tree_predictor.predict(sentence=sent)
-        # pred.keys() >>> ['class_probabilities', 'spans', 'tokens', 'pos_tags', 'num_spans', 'hierplane_tree', 'trees']
-        return ([([i[0], (''.join(i[1]).split())]) for i in list(self.parse(list(pred['trees'])))], pred) 
-
-
-    def parse(self, string): # Parsing str as stack-pop
-
-        stack = []
-        for i, c in enumerate(string):
-            if c == '(':
-                stack.append(i)
-            elif c == ')' and stack:
-                start = stack.pop()
-                yield (len(stack), string[start + 1: i])
-
-
-
+    def save_data(self, trees, coref, which):
+        if which == 'tense':
+            return [tense.get_tense(i) for i in trees]
+        elif which == 'modal':
+            return [modal.get_modal(i) for i in trees]
+        elif which == 'semantics':
+            return [semantics.get_sem(i) for i in trees]
+        elif which == 'adj':
+            return [adjective.get_adj(i,j) for i,j in zip(trees,coref)]
+        elif which == 'adv':
+            return [adverb.get_adv(trees[i], coref[i]) for i,j in zip(trees,coref)]
+        
 
     def analyze(self): # stores all results
 
@@ -107,7 +117,11 @@ class structFeat(object):
 
         try:
             all_trees = pickle.load(open(tree_pickle_path, "rb"))
-        except (IOError, EOFError):
+        except:
+            pass
+        try:
+            assert (len(all_trees) ==  len(self.data))
+        except (IOError, EOFError, AssertionError):
             all_trees = self.load_all()
             os.makedirs(os.path.dirname(tree_pickle_path), exist_ok=True)
             with open(tree_pickle_path, 'wb') as f:
@@ -115,20 +129,22 @@ class structFeat(object):
 
         try:
             all_coref = pickle.load(open(coref_pickle_path, "rb"))
-        except (IOError, EOFError):
+        except:
+            pass
+        try:
+            assert (len(all_coref) ==  len(self.data))
+        except (IOError, EOFError, AssertionError):
             all_coref = self.load_all('coref')
             os.makedirs(os.path.dirname(coref_pickle_path), exist_ok=True)
             with open(coref_pickle_path, 'wb') as f:
                 pickle.dump(all_coref, f)  
         
 
-
         tense_result = self.count_all(all_trees, all_coref, 'tense')
         modal_result = self.count_all(all_trees, all_coref, 'modal')
         ##semantics_result = self.count_all(all_trees, 'semantics')
         adj_result = self.count_all(all_trees, all_coref, 'adj')
         adv_result = self.count_all(all_trees, all_coref, 'adv')
-        
         return (tense_result, modal_result, adj_result, adv_result)
 
 
