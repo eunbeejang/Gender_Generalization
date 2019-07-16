@@ -202,8 +202,8 @@ class Label_Attr(object):
         #print("66 % not gender generalization", final_nb66)
 
         print(final_gb1)
-        print(gb1)
-
+        #print(gb1)
+        print(final_gb1(1).keys)
         return final_gb1, final_gb66, final_nb1, final_nb66
 
 
