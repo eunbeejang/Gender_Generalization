@@ -13,7 +13,7 @@ import pickle
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
-from nltk.corpus import verbnet
+#from nltk.corpus import verbnet
 #nltk.download('verbnet')
 
 import tense
@@ -80,31 +80,36 @@ class structFeat(object):
             return [self.tree_parser(i) for i in self.data['Clean Sentence']] 
 
 
+    def save_data(self, trees, coref, file_path):
+        data = [[i, tense.get_tense(i),modal.get_modal(i),adjective.get_adj(i,j),adverb.get_adv(i,j)] for i,j in zip(trees,coref)]
+        df = pd.DataFrame.from_records(data, columns=["Index","Tense", "Modal Type", "NP Pattern", "Adverb Exists"], index=False)
+        df.to_csv(file_path, encoding='utf-8')
+
+
     def count_all(self, trees, coref, which): # counting the result of each analysis by their confidence score
         full = np.where((self.data['Confidence'] == 1.0000) & (self.data['Final Label'] == 1))[0]
         two_third = np.where((self.data['Confidence'] != 1.0000) & (self.data['Final Label'] == 1))[0]
         one_third = np.where((self.data['Confidence'] != 1.0000) & (self.data['Final Label'] == 0))[0]
         zero = np.where((self.data['Confidence'] == 1.0000) & (self.data['Final Label'] == 0))[0]
         if which == 'tense':
-            return("TENSE", [Counter([tense.get_tense(trees[i]) for i in j]) for j in [full,two_third,one_third,zero]])
+            return [Counter([tense.get_tense(trees[i]) for i in j]) for j in [full,two_third,one_third,zero]]
         elif which == 'modal':
-            return("MODAL", [Counter(list(itertools.chain(*[modal.get_modal(trees[i]) for i in j]))) for j in [full,two_third,one_third,zero]])
+            return [Counter(list(itertools.chain(*[modal.get_modal(trees[i]) for i in j]))) for j in [full,two_third,one_third,zero]]
         elif which == 'semantics':
-            return("SEMANTICS", [Counter([semantics.get_sem(trees[i]) for i in j]) for j in [full,two_third,one_third,zero]])
+            return [Counter([semantics.get_sem(trees[i]) for i in j]) for j in [full,two_third,one_third,zero]]
         elif which == 'adj':
-            return ("ADJECTIVE", [Counter([(adjective.get_adj(trees[i], coref[i])) for i in j]) for j in [full,two_third,one_third,zero]])
+            return [Counter([(adjective.get_adj(trees[i], coref[i])) for i in j]) for j in [full,two_third,one_third,zero]]
         elif which == 'adv':
-            return ("ADVERB", [Counter([(adverb.get_adv(trees[i], coref[i])) for i in j]) for j in [full,two_third,one_third,zero]])
+            return [Counter([(adverb.get_adv(trees[i], coref[i])) for i in j]) for j in [full,two_third,one_third,zero]]
     
 
-
     def get_ratio(self, result_dict, which='by_group'):
-        total = sum_all([[value for key, value in i.items()] for i in result_dict])
+        total = sum_all([[i for i in j.values()] for j in result_dict])
         ratio_output = []
 
         if which == 'by_total':
             for i in range(0, len(result_dict)):
-                ratio_output.append([(j[0], j[1]/total) for j in result_dict[i].items()])
+              ratio_output.append([(j[0], j[1]/total) for j in result_dict[i].items()])
 
         elif which == 'by_group':
             for i in range(0, len(result_dict)):
@@ -113,17 +118,12 @@ class structFeat(object):
         return ratio_output
 
 
-    def save_data(self, trees, coref, file_path):
-        data = [[i, tense.get_tense(i),modal.get_modal(i),adjective.get_adj(i,j),adverb.get_adv(i,j)] for i,j in zip(trees,coref)]
-        df = pd.DataFrame.from_records(data, columns=["Index","Tense", "Modal Type", "NP Pattern", "Adverb Exists"], index=False)
-        df.to_csv(file_path, encoding='utf-8')
-
-
     def analyze(self, save=False): # stores all results
 
         all_trees, all_coref = {}, {}
         tree_pickle_path = "./pickle/trees.p"
         coref_pickle_path = "./pickle/coref.p"
+
 
         # save const tree as pickle
         try:
@@ -161,11 +161,13 @@ class structFeat(object):
         ##semantics_result = self.count_all(all_trees, 'semantics')
         adj_result = self.count_all(all_trees, all_coref, 'adj')
         adv_result = self.count_all(all_trees, all_coref, 'adv')
-        return ([get_ratio(tense_result), get_ratio(modal_result), get_ratio(adj_result), get_ratio(adv_result)],
-        [get_ratio(tense_result,'by_total'), get_ratio(modal_result,'by_total'), get_ratio(adj_result,'by_total'), get_ratio(adv_result,'by_total')])
- 
-        
 
+
+        # returned ratio ->> (by group, by total)
+        return ([self.get_ratio(tense_result), self.get_ratio(modal_result), self.get_ratio(adj_result), self.get_ratio(adv_result)],
+        [self.get_ratio(tense_result,'by_total'), self.get_ratio(modal_result,'by_total'), self.get_ratio(adj_result,'by_total'), self.get_ratio(adv_result,'by_total')])
+
+        
 
 
 if __name__ == '__main__':
@@ -173,8 +175,22 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('filename')
     args = parser.parse_args()
-
     analyzer = structFeat(args.filename)
+    #ratio_result = analyzer.analyze()
+
+
     ratio_result = analyzer.analyze()
+
+    print(ratio_result)
+    
+    ratio_result_pickle_path = "./pickle/ratio_result.p"
+    os.makedirs(os.path.dirname(ratio_result_pickle_path), exist_ok=True)
+    with open(ratio_result_pickle_path, 'wb') as f:
+        pickle.dump(ratio_result, f) 
+    
+
+
+
+
 
     
