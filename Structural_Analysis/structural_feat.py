@@ -22,6 +22,8 @@ import adjective
 import adverb
 import semantics
 
+sum_all = lambda x: sum(map(sum_all, x)) if isinstance(x, list) else x
+
 
 class structFeat(object):
 
@@ -39,7 +41,7 @@ class structFeat(object):
         self.tree_predictor = Predictor.from_path(pretrained_tree_path)
         self.coref_predictor = Predictor.from_path(pretrained_coref_path)
 
-        self.data = pd.read_csv(file_path)[:20]
+        self.data = pd.read_csv(file_path)
         self.lemmatizer = WordNetLemmatizer() 
         self.NP_pattern = []
 
@@ -93,28 +95,37 @@ class structFeat(object):
             return ("ADJECTIVE", [Counter([(adjective.get_adj(trees[i], coref[i])) for i in j]) for j in [full,two_third,one_third,zero]])
         elif which == 'adv':
             return ("ADVERB", [Counter([(adverb.get_adv(trees[i], coref[i])) for i in j]) for j in [full,two_third,one_third,zero]])
-        
+    
 
-    def save_data(self, trees, coref, which):
-        if which == 'tense':
-            return [tense.get_tense(i) for i in trees]
-        elif which == 'modal':
-            return [modal.get_modal(i) for i in trees]
-        elif which == 'semantics':
-            return [semantics.get_sem(i) for i in trees]
-        elif which == 'adj':
-            return [adjective.get_adj(i,j) for i,j in zip(trees,coref)]
-        elif which == 'adv':
-            return [adverb.get_adv(trees[i], coref[i]) for i,j in zip(trees,coref)]
-        
 
-    def analyze(self): # stores all results
+    def get_ratio(self, result_dict, which='by_group'):
+        total = sum_all([[value for key, value in i.items()] for i in result_dict])
+        ratio_output = []
+
+        if which == 'by_total':
+            for i in range(0, len(result_dict)):
+                ratio_output.append([(j[0], j[1]/total) for j in result_dict[i].items()])
+
+        elif which == 'by_group':
+            for i in range(0, len(result_dict)):
+                ratio_output.append([(j[0], j[1]/sum(result_dict[i].values())) for j in result_dict[i].items()])
+
+        return ratio_output
+
+
+    def save_data(self, trees, coref, file_path):
+        data = [[i, tense.get_tense(i),modal.get_modal(i),adjective.get_adj(i,j),adverb.get_adv(i,j)] for i,j in zip(trees,coref)]
+        df = pd.DataFrame.from_records(data, columns=["Index","Tense", "Modal Type", "NP Pattern", "Adverb Exists"], index=False)
+        df.to_csv(file_path, encoding='utf-8')
+
+
+    def analyze(self, save=False): # stores all results
 
         all_trees, all_coref = {}, {}
-
         tree_pickle_path = "./pickle/trees.p"
         coref_pickle_path = "./pickle/coref.p"
 
+        # save const tree as pickle
         try:
             all_trees = pickle.load(open(tree_pickle_path, "rb"))
         except:
@@ -127,6 +138,7 @@ class structFeat(object):
             with open(tree_pickle_path, 'wb') as f:
                 pickle.dump(all_trees, f)
 
+        # save coref as pickle
         try:
             all_coref = pickle.load(open(coref_pickle_path, "rb"))
         except:
@@ -139,26 +151,30 @@ class structFeat(object):
             with open(coref_pickle_path, 'wb') as f:
                 pickle.dump(all_coref, f)  
         
+        # save as csv
+        if save == True:
+            self.save_data(all_trees, all_coref,'structFeat_out.csv')
+
 
         tense_result = self.count_all(all_trees, all_coref, 'tense')
         modal_result = self.count_all(all_trees, all_coref, 'modal')
         ##semantics_result = self.count_all(all_trees, 'semantics')
         adj_result = self.count_all(all_trees, all_coref, 'adj')
         adv_result = self.count_all(all_trees, all_coref, 'adv')
-        return (tense_result, modal_result, adj_result, adv_result)
+        return ([get_ratio(tense_result), get_ratio(modal_result), get_ratio(adj_result), get_ratio(adv_result)],
+        [get_ratio(tense_result,'by_total'), get_ratio(modal_result,'by_total'), get_ratio(adj_result,'by_total'), get_ratio(adv_result,'by_total')])
+ 
+        
 
 
 
-def main():
+if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('filename')
     args = parser.parse_args()
 
     analyzer = structFeat(args.filename)
-    result = analyzer.analyze()
-    print(result)
+    ratio_result = analyzer.analyze()
 
-
-if __name__ == '__main__':
-    main()
+    

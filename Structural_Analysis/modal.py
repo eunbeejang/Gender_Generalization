@@ -39,7 +39,7 @@ def get_modal(constTree): # Analyze modals by their functions
         try:
             return MODAL_DICT[list((set(MD)).intersection(set(MODAL_DICT)))[0]]
         except:
-            return ''
+            return []
 
     # Check for words in VP_MODAL_DICT
     elif (not(any(modal_found)) and (any(VP_modal_found))):
@@ -47,5 +47,5 @@ def get_modal(constTree): # Analyze modals by their functions
             return VP_MODAL_DICT[VP_modal_found[0][0]]
         except:
             return VP_modal_found[0]
-    else: return ''
+    else: return []
 
