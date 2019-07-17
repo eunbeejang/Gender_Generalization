@@ -1,3 +1,10 @@
+""" TO RUN THE CODE:
+
+python3 structural_feat.py ../Data/Clean_data_labels_golden_fixed.csv
+
+"""
+
+
 from allennlp.predictors.predictor import Predictor
 from collections import Counter
 import pandas as pd
@@ -23,6 +30,23 @@ import adverb
 import semantics
 
 sum_all = lambda x: sum(map(sum_all, x)) if isinstance(x, list) else x
+flatten = lambda l: [item for sublist in l for item in sublist]
+
+def clean_output(data):
+  complete = list(set(flatten([[i[0] for i in j] for j in data])))
+  lst = []
+  for i in data:
+    mini_lst = []
+    for j in complete:   
+      try:
+        idx = [k[0] for k in i].index(j)
+        mini_lst.append((j, i[idx][1]))
+      except ValueError:
+        mini_lst.append((j, 0))      
+    lst.append(mini_lst)
+  return lst
+
+
 
 
 class structFeat(object):
@@ -164,8 +188,8 @@ class structFeat(object):
 
 
         # returned ratio ->> (by group, by total)
-        return ([self.get_ratio(tense_result), self.get_ratio(modal_result), self.get_ratio(adj_result), self.get_ratio(adv_result)],
-        [self.get_ratio(tense_result,'by_total'), self.get_ratio(modal_result,'by_total'), self.get_ratio(adj_result,'by_total'), self.get_ratio(adv_result,'by_total')])
+        return [[clean_output(d) for d in k] for k in ([self.get_ratio(tense_result), self.get_ratio(modal_result), self.get_ratio(adj_result), self.get_ratio(adv_result)],
+        [self.get_ratio(tense_result,'by_total'), self.get_ratio(modal_result,'by_total'), self.get_ratio(adj_result,'by_total'), self.get_ratio(adv_result,'by_total')])]
 
         
 
