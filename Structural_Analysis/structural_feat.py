@@ -186,10 +186,11 @@ class structFeat(object):
         adj_result = self.count_all(all_trees, all_coref, 'adj')
         adv_result = self.count_all(all_trees, all_coref, 'adv')
 
+        by_group = [self.get_ratio(tense_result), self.get_ratio(modal_result), self.get_ratio(adj_result), self.get_ratio(adv_result)]
+        by_total = [self.get_ratio(tense_result,'by_total'), self.get_ratio(modal_result,'by_total'), self.get_ratio(adj_result,'by_total'), self.get_ratio(adv_result,'by_total')]
 
         # returned ratio ->> (by group, by total)
-        return [[clean_output(d) for d in k] for k in ([self.get_ratio(tense_result), self.get_ratio(modal_result), self.get_ratio(adj_result), self.get_ratio(adv_result)],
-        [self.get_ratio(tense_result,'by_total'), self.get_ratio(modal_result,'by_total'), self.get_ratio(adj_result,'by_total'), self.get_ratio(adv_result,'by_total')])]
+        return [[clean_output(d) for d in k] for k in (by_group, by_total)]
 
         
 
