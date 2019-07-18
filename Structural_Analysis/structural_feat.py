@@ -32,7 +32,7 @@ import semantics
 sum_all = lambda x: sum(map(sum_all, x)) if isinstance(x, list) else x
 flatten = lambda l: [item for sublist in l for item in sublist]
 
-def clean_output(data):
+def clean_output(data): # assigns 0 if no probability assigned
   complete = list(set(flatten([[i[0] for i in j] for j in data])))
   lst = []
   for i in data:
@@ -58,6 +58,8 @@ class structFeat(object):
 
         if not os.path.exists(pretrained_tree_path):
             tree_url = "https://s3-us-west-2.amazonaws.com/allennlp/models/elmo-constituency-parser-2018.03.14.tar.gz"
+            wget.download(tree_url, pretrained_tree_path)
+
         if not os.path.exists(pretrained_coref_path):
             coref_url = "https://s3-us-west-2.amazonaws.com/allennlp/models/coref-model-2018.02.05.tar.gz"
             wget.download(coref_url, pretrained_coref_path)
