@@ -113,10 +113,10 @@ class structFeat(object):
 
 
     def count_all(self, trees, coref, which): # counting the result of each analysis by their confidence score
-        full = np.where((self.data['Confidence'] == 1.0000) & (self.data['Final Label'] == 1))[0]
+        full = np.where((self.data['Confidence'] == 1.0000) & (self.data['Final Label'] == 1))[0]   # sents everyone thought was biased
         two_third = np.where((self.data['Confidence'] != 1.0000) & (self.data['Final Label'] == 1))[0]
         one_third = np.where((self.data['Confidence'] != 1.0000) & (self.data['Final Label'] == 0))[0]
-        zero = np.where((self.data['Confidence'] == 1.0000) & (self.data['Final Label'] == 0))[0]
+        zero = np.where((self.data['Confidence'] == 1.0000) & (self.data['Final Label'] == 0))[0] #sents everyone thought was not biased
         if which == 'tense':
             return [Counter([tense.get_tense(trees[i]) for i in j]) for j in [full,two_third,one_third,zero]]
         elif which == 'modal':
