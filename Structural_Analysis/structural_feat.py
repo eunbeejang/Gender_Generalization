@@ -23,11 +23,11 @@ from nltk.stem import WordNetLemmatizer
 #from nltk.corpus import verbnet
 #nltk.download('verbnet')
 
-import tense
-import modal
-import adjective
-import adverb
-import semantics
+from models import tense
+from models import modal
+from models import adjective
+from models import adverb
+from models import semantics
 
 sum_all = lambda x: sum(map(sum_all, x)) if isinstance(x, list) else x
 flatten = lambda l: [item for sublist in l for item in sublist]
