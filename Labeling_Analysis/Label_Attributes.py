@@ -15,16 +15,26 @@ from nltk.tokenize import sent_tokenize
 from nltk import ne_chunk, pos_tag
 nltk.download('words')
 from nltk.corpus import words as nltk_words
-#import allennlp
+import os
+import wget
+import pickle
 from allennlp.predictors.predictor import Predictor
 from allennlp.models.archival import load_archive
 from collections import Counter
+from plot import Plotting
+
 
 class Label_Attr(object):
 
     def __init__(self):
         #self.new_df = new_df
-        self. predictor = Predictor.from_path("https://s3-us-west-2.amazonaws.com/allennlp/models/coref-model-2018.02.05.tar.gz")
+        pretrained_coref_path = './allennlp_coref-model-2018.02.05.tar.gz'
+
+        if not os.path.exists(pretrained_coref_path):
+            coref_url = "https://s3-us-west-2.amazonaws.com/allennlp/models/coref-model-2018.02.05.tar.gz"
+            wget.download(coref_url, pretrained_coref_path)
+
+        self. predictor = Predictor.from_path(pretrained_coref_path)
 
     def preprocess(self, data):
         clean_sentences = []
@@ -58,6 +68,8 @@ class Label_Attr(object):
         f_lst = ["she", "her", "hers", "herself"]            # female pronouns
         m_lst = ["he", "him", "his", "himself"]              # male pronouns
         f_cnt, m_cnt = 0, 0                                  # initial count
+
+
         try:
             pred = self.predictor.predict(document=new_s)         # Coref on clean sentences to get correct clusters
             sym_pred = self.predictor.predict(document=old_sent)  # Coref on old sentences to get tokens for symbol count
@@ -142,11 +154,24 @@ class Label_Attr(object):
         sent_att = []
         a = new_df['Clean Sentence']
         b = new_df['Old Sentence']
-        for x, y in zip(a, b):
-            sent_att.append(self.coref_attr(x, y))
-        print(a[:10])
-        print(b[:10])
-        print(sent_att[:10])
+
+        coref_pickle_path = "./pickle/coref.p"
+        try:
+            sent_att = pickle.load(open(coref_pickle_path, "rb"))
+
+        except (IOError, EOFError, AssertionError):
+            for x, y in zip(a, b):
+                sent_att.append(self.coref_attr(x, y))
+
+            os.makedirs(os.path.dirname(coref_pickle_path), exist_ok=True)
+            with open(coref_pickle_path, 'wb') as f:
+                pickle.dump(sent_att, f)
+
+
+        #print(a[:10])
+        #print(b[:10])
+        #print(sent_att[:10])
+
         w_len = [i[0] for i in sent_att]
         sym_c = [i[1] for i in sent_att]
         n_clus = [i[2] for i in sent_att]
@@ -160,7 +185,7 @@ class Label_Attr(object):
         new_df['Female Pronoun'] = f
         new_df['Male Pronoun'] = m
         #new_df.append(w_len)
-        print(w_len[:10])
+        #print(w_len[:10])
 
         return new_df
 
@@ -179,7 +204,7 @@ class Label_Attr(object):
         cluster = self.count_ctg(conf_pd, 'cluster')
 
 
-        print(wordlength)
+        #print(wordlength)
 
         return corpus, wordlength, symbolcount, cluster
 
@@ -201,12 +226,67 @@ class Label_Attr(object):
         #print("100 % not gender generalization", final_nb1)
         #print("66 % not gender generalization", final_nb66)
 
-        print(final_gb1)
+        #print(final_gb1)
+        #print(final_gb66)
         #print(gb1)
-        print(final_gb1(1).keys)
-        return final_gb1, final_gb66, final_nb1, final_nb66
+
+        return [final_gb1, final_gb66, final_nb1, final_nb66]
+
+    def counter_2_list(self, count_item):
+        new = []
+        for k,v in count_item.items():
+            new.append([k,v])
+
+        return new
+
+    def ratio_list(self, ratio, type_r):
+        if type_r == 'list':
+            return [i / 1591 * 100 for i in ratio]
+
+        if type_r == 'tuple':
+            return [[x[0], x[1]/ 1591*100] for x in ratio]
 
 
+    def prepare_plot(self):
+        """This function prepares ratios for plots in the plot.py file. This will return sentence ratio in % over total
+        amount of sentences to represent the probability of sentences based off their attributes computed above"""
+        #z = self.load_all(data)
+        #print(self.counter_2_list(z[0][0]))
+
+        corpus_gb1 = self.ratio_list(self.counter_2_list(self.load_all(data)[0][0]),'tuple')
+        corpus_gb66 = self.ratio_list(self.counter_2_list(self.load_all(data)[1][0]),'tuple')
+        corpus_nb1 = self.ratio_list(self.counter_2_list(self.load_all(data)[2][0]),'tuple')
+        corpus_nb66 = self.ratio_list(self.counter_2_list(self.load_all(data)[3][0]),'tuple')
+
+        word_gb1 = self.ratio_list(self.load_all(data)[0][1],'list')
+        #print(word_gb1)
+        word_gb66 = self.ratio_list(self.load_all(data)[1][1],'list')
+        word_nb1 = self.ratio_list(self.load_all(data)[2][1],'list')
+        word_nb66 = self.ratio_list(self.load_all(data)[3][1],'list')
+
+        sym_gb1 = self.ratio_list(self.load_all(data)[0][2],'list')
+        sym_gb66 = self.ratio_list(self.load_all(data)[1][2],'list')
+        sym_nb1 = self.ratio_list(self.load_all(data)[2][2],'list')
+        sym_nb66 = self.ratio_list(self.load_all(data)[3][2],'list')
+
+        cluster_gb1 = self.ratio_list(self.counter_2_list(self.load_all(data)[0][3]),'tuple')
+        cluster_gb66 = self.ratio_list(self.counter_2_list(self.load_all(data)[1][3]),'tuple')
+        cluster_nb1 = self.ratio_list(self.counter_2_list(self.load_all(data)[2][3]),'tuple')
+        cluster_nb66 = self.ratio_list(self.counter_2_list(self.load_all(data)[3][3]),'tuple')
+
+        conf1 = [corpus_gb1,word_gb1,sym_gb1,cluster_gb1]
+        conf2 = [corpus_gb66,word_gb66,sym_gb66,cluster_gb66]
+        conf3 = [corpus_nb66,word_nb66,sym_nb66,cluster_nb66]
+        conf4 = [corpus_nb1,word_nb1,sym_nb1,cluster_nb1]
+
+        print(conf1[0])
+        print(conf1[0][0])
+        print(conf1)
+
+        return conf1, conf2, conf3, conf4
+
+    def conf_plot(self):
+        self.prepare_plot()
 
 
 # For testing file, will connect to main.py once created
@@ -217,6 +297,11 @@ if __name__ == '__main__':
     label_attr = Label_Attr()
     #data = label_attr.df_build(data)
     values = label_attr.load_all(data)
+    #plott_fn =label_attr.prepare_plot()
+    plotting = Plotting()
+
+    ploting_v = plotting.barplot_grouped(label_attr.prepare_plot()[0],label_attr.prepare_plot()[1],label_attr.prepare_plot()[2],label_attr.prepare_plot()[3], attr='corpus')
+
 
     # DATA IMPORT
 
