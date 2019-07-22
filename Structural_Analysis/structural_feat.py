@@ -33,19 +33,49 @@ sum_all = lambda x: sum(map(sum_all, x)) if isinstance(x, list) else x
 flatten = lambda l: [item for sublist in l for item in sublist]
 
 def clean_output(data): # assigns 0 if no probability assigned
-  complete = list(set(flatten([[i[0] for i in j] for j in data])))
-  lst = []
-  for i in data:
-    mini_lst = []
-    for j in complete:   
-      try:
-        idx = [k[0] for k in i].index(j)
-        mini_lst.append((j, i[idx][1]))
-      except ValueError:
-        mini_lst.append((j, 0))      
-    lst.append(mini_lst)
-  return lst
 
+    complete = list(set(flatten([[i[0] for i in j] for j in data])))
+    lst = []
+    for i in data:
+        mini_lst = []
+    for j in complete:   
+        try:
+            idx = [k[0] for k in i].index(j)
+            mini_lst.append((j, i[idx][1]))
+        except ValueError:
+            mini_lst.append((j, 0))      
+        lst.append(mini_lst)
+    return lst
+
+
+def combine_relevant(data): # Combines relevant NP structure patterns
+    lst = [i for i in data if i[0] not in [('DT', 'an', 'JJ', 'NN(sg)'),('DT', 'a', 'JJ', 'NN(sg)'), ('DT', 'that', 'JJ', 'NN(sg)'),
+                                        ('DT', 'this', 'JJ', 'NN(sg)'),('DT', 'an', 'NN(sg)'),('DT', 'a', 'NN(sg)'),
+                                        ('DT', 'that', 'NN(sg)'),('DT', 'this', 'NN(sg)')]]
+  
+    added_0, added_1, added_2, added_3 = 0,0,0,0
+
+    for i in data:
+
+        if (i[0] == ('DT', 'an', 'JJ', 'NN(sg)')) or (i[0] == ('DT', 'a', 'JJ', 'NN(sg)')):
+          added_0 += i[1] 
+        if (i[0] == ('DT', 'that', 'JJ', 'NN(sg)') or (i[0] == ('DT', 'this', 'JJ', 'NN(sg)'))):
+          added_1 += i[1]
+        if (i[0] == ('DT', 'an', 'NN(sg)')) or (i[0] == ('DT', 'a', 'NN(sg)')):
+          added_2 += i[1] 
+        if (i[0] == ('DT', 'that', 'NN(sg)') or (i[0] == ('DT', 'this', 'NN(sg)'))):
+          added_3 += i[1]
+  
+    added_num = [added_0, added_1, added_2, added_3]
+
+    add_to_lst = [('DT', 'an', 'JJ', 'NN(sg)'),('DT', 'a', 'JJ', 'NN(sg)'), ('DT', 'that', 'JJ', 'NN(sg)'),
+                ('DT', 'this', 'JJ', 'NN(sg)'),('DT', 'an', 'NN(sg)'),('DT', 'a', 'NN(sg)'),
+                ('DT', 'that', 'NN(sg)'),('DT', 'this', 'NN(sg)')]
+  
+    for i in range(0, len(added_num)):
+        lst.append((add_to_lst[i], added_num[i]))
+    print(lst)
+    return lst
 
 
 
@@ -107,8 +137,8 @@ class structFeat(object):
 
 
     def save_data(self, trees, coref, file_path):
-        data = [[i, tense.get_tense(i),modal.get_modal(i),adjective.get_adj(i,j),adverb.get_adv(i,j)] for i,j in zip(trees,coref)]
-        df = pd.DataFrame.from_records(data, columns=["Index","Tense", "Modal Type", "NP Pattern", "Adverb Exists"], index=False)
+        data = [[tense.get_tense(i),modal.get_modal(i),adjective.get_adj(i,j),adverb.get_adv(i,j)] for i,j in zip(trees,coref)]
+        df = pd.DataFrame.from_records(data, columns=["Tense", "Modal Type", "NP Pattern", "Adverb Exists"], index=False)
         df.to_csv(file_path, encoding='utf-8')
 
 
@@ -146,7 +176,6 @@ class structFeat(object):
 
     def analyze(self, save=False): # stores all results
 
-        all_trees, all_coref = {}, {}
         tree_pickle_path = "./pickle/trees.p"
         coref_pickle_path = "./pickle/coref.p"
 
@@ -188,8 +217,10 @@ class structFeat(object):
         adj_result = self.count_all(all_trees, all_coref, 'adj')
         adv_result = self.count_all(all_trees, all_coref, 'adv')
 
-        by_group = [self.get_ratio(tense_result), self.get_ratio(modal_result), self.get_ratio(adj_result), self.get_ratio(adv_result)]
-        by_total = [self.get_ratio(tense_result,'by_total'), self.get_ratio(modal_result,'by_total'), self.get_ratio(adj_result,'by_total'), self.get_ratio(adv_result,'by_total')]
+        
+
+        by_group = [self.get_ratio(tense_result), self.get_ratio(modal_result), [combine_relevant(i) for i in self.get_ratio(adj_result)], self.get_ratio(adv_result)]
+        by_total = [self.get_ratio(tense_result,'by_total'), self.get_ratio(modal_result,'by_total'), [combine_relevant(i) for i in self.get_ratio(adj_result, 'by_total')], self.get_ratio(adv_result,'by_total')]
 
         # returned ratio ->> (by group, by total)
         return [[clean_output(d) for d in k] for k in (by_group, by_total)]
@@ -203,10 +234,9 @@ if __name__ == '__main__':
     parser.add_argument('filename')
     args = parser.parse_args()
     analyzer = structFeat(args.filename)
-    #ratio_result = analyzer.analyze()
 
 
-    ratio_result = analyzer.analyze()
+    ratio_result = analyzer.analyze(True)
 
     print(ratio_result)
     
@@ -215,7 +245,6 @@ if __name__ == '__main__':
     with open(ratio_result_pickle_path, 'wb') as f:
         pickle.dump(ratio_result, f) 
     
-
 
 
 
