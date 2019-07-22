@@ -12,6 +12,6 @@ python run_classifier.py \
   --train_batch_size 8 \
   --learning_rate 2e-5 \
   --num_train_epochs 3.0 \
-  --output_dir ../../../Data/BERT_data/results/
+  --output_dir ../../../Models/BERT/results/
 
 ```
