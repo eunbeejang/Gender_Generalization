@@ -14,7 +14,13 @@ def get_adj(constTree, coref): # Categorize each coref cluster linked to a gende
 
     # Check and return if a particular structure exists
     if (len(output) >= 2 and output[0][0] == "DT" and output[1][0] == "NN"):
-        return "DT", output[0][1].lower(), "NN(sg)" # 'the/a/an' + singular noun
+        DT =  output[0][1].lower()
+        if DT == 'a' or DT == 'an':
+            return "DT", "a/an", "NN(sg)" # 'the/a/an' + singular noun
+        elif DT == 'this' or DT == 'that':
+            return "DT", "this/that", "NN(sg)"
+        else:
+            return "DT", output[0][1].lower(), "NN(sg)" # 'the/a/an' + singular noun
     elif (len(output) >= 3 and output[0][0] == "DT" and output[1][0] == "NNS"):
         return "DT", output[0][1].lower(), "NNS(pl)" # 'the' + plural noun
     elif (len(output) >= 1 and output[0][0] == "NNS"):
@@ -25,7 +31,13 @@ def get_adj(constTree, coref): # Categorize each coref cluster linked to a gende
     # Below checks the existance of adjectives in the mentions
     elif (len(output) >= 1 and any([i for i in output if (i[0] == "JJ" or i[0] == "JJR" or i[0] == "JJS")])):
         if any([i for i in output if (i[0] == "DT")]) and any([i for i in output if (i[0] == "NN")]):
-            return ("DT", output[0][1].lower(), "JJ", "NN(sg)") # 'the/a/an' + adj + singular noun
+            DT = output[0][1].lower()
+            if DT == 'a' or DT == 'an':
+                return "DT", "a/an", "JJ", "NN(sg)" # 'the/a/an' + singular noun
+            elif DT == 'this' or DT == 'that':
+                return "DT", "this/that", "JJ", "NN(sg)"
+            else:
+                return ("DT", output[0][1].lower(), "JJ", "NN(sg)") # 'the/a/an' + adj + singular noun
         elif any([i for i in output if (i[0] == "DT")]) and any([i for i in output if (i[0] == "NNS")]):
             return ("DT", output[0][1].lower(), "JJ", "NNS(pl)") # 'the' + adj + plural noun
         elif all([i for i in output if (i[0] != "DT")]) and any([i for i in output if (i[0] == "NNS")]):
