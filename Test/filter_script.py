@@ -59,14 +59,14 @@ data = read_csv(input_path)
 
 # FILTER #1: Coreference Resolution Checker
 # if coref exists, append 1 to the list called coref_output, else append 0
-# the below filter called "filter_by_corpus" will use this list to keep or reject a sentence
+# the Gender Pronoun filter below will use this information (it will only check the sentences that have coref)
 
 for line in tqdm(data):
     coref_line = {"document": line.strip()}
     try:
         coref_json = predictor.predict_json(coref_line)
     except KeyboardInterrupt:
-        print("KeyboardInterrup")
+        print("KeyboardInterrupt")
         break
     except:
         # print("problem sentence: ", line)
