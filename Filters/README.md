@@ -1,12 +1,12 @@
 ## Filter.py
 
-The input_file should be a csv and contain:
+The *input_file* should be a csv and contain:
 
 - one clean sentence per line
 - no header
 - no index
 
-The dataset_code should be the first three characters of the dataset name
+The *dataset_code* should be the first three characters of the dataset name
 
 
 Example:
