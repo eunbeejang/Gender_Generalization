@@ -6,12 +6,12 @@ The *input_file* should be a csv and contain:
 - no header
 - no index
 
-The *dataset_code* should be the first three characters of the dataset name
+The *dataset_code* should match the code found in the dataset tracker (first 2 characters of your name, dash, first 3 characters of the dataset name)
 
 
 Example:
 ```bash
-python Filter.py --input_file ../Test/test_sentences.csv --dataset_code TES
+python Filter.py --input_file ../Test/test_sentences.csv --dataset_code CA-TES
 ```
 
 1. Coreference Resolution Checker (keep)
