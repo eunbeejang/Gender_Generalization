@@ -26,10 +26,14 @@ def read_csv(input_file, quotechar=None):
     sentences = sent_tokenize(text)
     return sentences
 
-def length_three(dataset_code):
-    if len(dataset_code) != 3:
-        raise argparse.ArgumentTypeError("Dataset code must be of length 3")
-    return dataset_code
+def dataset_code(code):
+    if len(code) != 6:
+        raise argparse.ArgumentTypeError("Dataset code must be of length 6")
+    if code[2] != "-":
+        raise argparse.ArgumentTypeError("Dataset code must include a dash between your name and dataset name")
+    if code[:2].upper() not in ["AN", "CA", "IN", "SI", "YA"]:
+        raise argparse.ArgumentTypeError("Dataset code must start with the first 2 characters of your name")
+    return code
 
 class Filter(object):
     def __init__(self):
@@ -131,8 +135,8 @@ def main():
     ## Required parameters
     parser.add_argument("--input_file", default=None, type=str, required=True,
                         help="Should be a .csv file, no index, no header, one clean sentence per line.")
-    parser.add_argument("--dataset_code", default=None, type=length_three, required=True,
-                        help="First three characters of dataset name.")
+    parser.add_argument("--dataset_code", default=None, type=dataset_code, required=True,
+                        help="First 2 characters of your name, dash, first 3 characters of the dataset name.")
     args = parser.parse_args()
 
     data = read_csv(args.input_file)
