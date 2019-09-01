@@ -54,17 +54,17 @@ gutenberg function. """
 
 
 def load_gutenberg(data_path):
-    df = pd.read_csv(data_path)
-    #df = data_path  # read in input_file
-    sentences = [df['index'].tolist(),df['Sentences'].tolist(),df['Corpus'].tolist()]
-    print("Size of Dataset: ", len(sentences))
+    #df = pd.read_csv(data_path)
+    df = data_path  # read in input_file
+    #sentences = [df['index'].tolist(),df['Sentences'].tolist(),df['Corpus'].tolist()]
+    print("Size of Dataset: ", len(df))
 
-    #df_clean = preprocess_gutenberg(df)  # cleaning sentences
+    df_clean = preprocess_gutenberg(df)  # cleaning sentences
     #print("Size of Dataset after clean: ", len(df_clean))
 
     #print("size of small subset for testing: ", len(df_clean))
 
-    return sentences
+    return df_clean
 
 
 """ load_IMDB takes the IMDB dataset, selects the first column and is sent 
