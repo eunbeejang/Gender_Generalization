@@ -1,4 +1,3 @@
-
 from io import open
 from allennlp.predictors import Predictor
 from allennlp.models.archival import load_archive
@@ -27,8 +26,13 @@ def read_csv(input_file, quotechar=None):
     sentences = sent_tokenize(text)
     return sentences
 
+def length_three(dataset_code):
+    if len(dataset_code) != 3:
+        raise argparse.ArgumentTypeError("Dataset code must be of length 3")
+    return dataset_code
+
 class Filter(object):
-    def __init__(self,):
+    def __init__(self):
         # ALLEN NLP Corereference pre-trained model
         self.predictor = Predictor.from_archive(
             load_archive('https://s3-us-west-2.amazonaws.com/allennlp/models/coref-model-2018.02.05.tar.gz',
@@ -126,14 +130,17 @@ def main():
     parser = argparse.ArgumentParser()
     ## Required parameters
     parser.add_argument("--input_file", default=None, type=str, required=True,
-                        help="Should be a .csv file, no index, no header, one sentence per line.")
-    parser.add_argument("--dataset_code", default=None, type=str, required=True,
-                        help="First three letters of dataset name.")
+                        help="Should be a .csv file, no index, no header, one clean sentence per line.")
+    parser.add_argument("--dataset_code", default=None, type=length_three, required=True,
+                        help="First three characters of dataset name.")
     args = parser.parse_args()
 
     data = read_csv(args.input_file)
-    df = Filter.get_dataframe(data)
-    df.to_csv(args.dataset_code + "_df", header=True)
+    df = Filter().get_dataframe(data)
+    df.to_csv( args.dataset_code.upper() + "_df", header=True)
+
+if __name__ == '__main__':
+    main()
 
 
 
