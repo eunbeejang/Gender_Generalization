@@ -1,4 +1,4 @@
-## Filters
+## Filter.py
 
 The input_file should be a csv and contain:
 
