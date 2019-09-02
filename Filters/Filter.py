@@ -9,16 +9,6 @@ pp = pprint.PrettyPrinter(indent=1)
 
 from filters import filter_by_corpus
 
-# Use the NLTK Downloader to obtain the resources that you need for this script:
-import nltk
-from nltk.tokenize import sent_tokenize
-# nltk.download('averaged_perceptron_tagger')
-# nltk.download('punkt')
-# nltk.download('averaged_perceptron_tagger')
-# nltk.download('maxent_ne_chunker')
-# nltk.download('words')
-# nltk.download('tagsets')
-
 def read_file(input_file):
     """Reads a text file delimited by newline \n"""
     with open(input_file, "r", encoding="utf-8-sig") as f:
