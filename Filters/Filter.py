@@ -19,7 +19,7 @@ from nltk.tokenize import sent_tokenize
 # nltk.download('words')
 # nltk.download('tagsets')
 
-def read_txt(input_file):
+def read_file(input_file):
     """Reads a text file delimited by newline \n"""
     with open(input_file, "r", encoding="utf-8-sig") as f:
         sentences = f.read().splitlines()
@@ -138,7 +138,7 @@ def main():
                         help="First 2 characters of your name, dash, first 3 characters of the dataset name.")
     args = parser.parse_args()
 
-    data = read_txt(args.input_file)
+    data = read_file(args.input_file)
     df = Filter().get_dataframe(data)
     df.to_csv( args.dataset_code.upper() + "_df", header=True)
 
