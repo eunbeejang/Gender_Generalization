@@ -133,7 +133,7 @@ def main():
     parser = argparse.ArgumentParser()
     ## Required parameters
     parser.add_argument("--input_file", default=None, type=str, required=True,
-                        help="Should be a .csv file, no index, no header, one clean sentence per line.")
+                        help="Should be a text file, no index, no header, one clean sentence per line delimited by newline \n.")
     parser.add_argument("--dataset_code", default=None, type=dataset_code, required=True,
                         help="First 2 characters of your name, dash, first 3 characters of the dataset name.")
     args = parser.parse_args()
