@@ -11,7 +11,7 @@ The *dataset_code* should match the code found in the dataset tracker (first 2 c
 
 Example:
 ```bash
-python Filter.py --input_file test_sentences.txt --dataset_code CA-TES
+python Filter.py --input_file test_sentences.* --dataset_code CA-TES
 ```
 
 1. Coreference Resolution Checker (keep)
