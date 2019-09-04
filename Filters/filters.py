@@ -74,11 +74,11 @@ def check_remove(data, tok, word_range, which_type="all"):
     return any(result)
 
 
-def filter_by_corpus(corpus, tok_corpus, coref_ranges, prev_result, which_type="all"):
+def filter_by_corpus(corpus, tok_corpus, coref_ranges, gp_output, which_type="all"):
     this_result = []
     for i in range(0, len(corpus)):
-        if prev_result[i] == 1:
-            if check_remove(corpus[i],tok_corpus[i], coref_ranges[i], which_type):
+        if gp_output[i] == 1:
+            if check_remove(corpus[i], tok_corpus[i], coref_ranges[i], which_type):
                 this_result.append(0)
             else:
                 this_result.append(1)
