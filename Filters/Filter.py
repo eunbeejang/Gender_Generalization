@@ -5,6 +5,11 @@ import pandas as pd
 import pprint
 import argparse
 from tqdm import tqdm
+
+import os
+import wget
+import pickle
+
 pp = pprint.PrettyPrinter(indent=1)
 
 from filters import filter_by_corpus
@@ -27,9 +32,16 @@ def dataset_code(code):
 class Filter(object):
     def __init__(self):
         # ALLEN NLP Corereference pre-trained model
-        self.predictor = Predictor.from_archive(
-            load_archive('https://s3-us-west-2.amazonaws.com/allennlp/models/coref-model-2018.02.05.tar.gz',
-                         weights_file=None, overrides=""), 'coreference-resolution')
+
+        pretrained_coref_path = './allennlp_pretrained/allennlp_coref-model-2018.02.05.tar.gz'
+
+        if not os.path.exists(pretrained_coref_path):
+            coref_url = "https://s3-us-west-2.amazonaws.com/allennlp/models/coref-model-2018.02.05.tar.gz"
+            wget.download(coref_url, pretrained_coref_path)
+
+        self.predictor = Predictor.from_path(pretrained_coref_path)
+
+
 
     def get_dataframe(self, data):
 
