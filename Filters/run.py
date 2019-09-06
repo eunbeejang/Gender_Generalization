@@ -21,16 +21,6 @@ def read_file(input_file):
     with open(input_file, "r", encoding="utf-8-sig") as f:
         sentences = f.read().splitlines()
     return sentences
-"""
-def dataset_code(code):
-    if len(code) != 6:
-        raise argparse.ArgumentTypeError("Dataset code must be of length 6")
-    if code[2] != "-":
-        raise argparse.ArgumentTypeError("Dataset code must include a dash between your name and dataset name")
-    if code[:2].upper() not in ["AN", "CA", "IN", "SI", "YA"]:
-        raise argparse.ArgumentTypeError("Dataset code must start with the first 2 characters of your name")
-    return code
-"""
 
 class Filter(object):
     def __init__(self):
@@ -43,8 +33,6 @@ class Filter(object):
             wget.download(coref_url, pretrained_coref_path)
 
         self.predictor = Predictor.from_path(pretrained_coref_path)
-
-
 
     def get_dataframe(self, data):
 
