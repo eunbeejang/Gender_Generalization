@@ -10,16 +10,18 @@ import os
 import wget
 import pickle
 
+from filters import filter_by_corpus
+from ID_gen import GenID
+
 pp = pprint.PrettyPrinter(indent=1)
 
-from filters import filter_by_corpus
 
 def read_file(input_file):
     """Reads a text file delimited by newline \n"""
     with open(input_file, "r", encoding="utf-8-sig") as f:
         sentences = f.read().splitlines()
     return sentences
-
+"""
 def dataset_code(code):
     if len(code) != 6:
         raise argparse.ArgumentTypeError("Dataset code must be of length 6")
@@ -28,15 +30,16 @@ def dataset_code(code):
     if code[:2].upper() not in ["AN", "CA", "IN", "SI", "YA"]:
         raise argparse.ArgumentTypeError("Dataset code must start with the first 2 characters of your name")
     return code
+"""
 
 class Filter(object):
     def __init__(self):
         # ALLEN NLP Corereference pre-trained model
-
         pretrained_coref_path = './allennlp_pretrained/allennlp_coref-model-2018.02.05.tar.gz'
 
         if not os.path.exists(pretrained_coref_path):
             coref_url = "https://s3-us-west-2.amazonaws.com/allennlp/models/coref-model-2018.02.05.tar.gz"
+            os.mkdir('allennlp_pretrained')
             wget.download(coref_url, pretrained_coref_path)
 
         self.predictor = Predictor.from_path(pretrained_coref_path)
@@ -134,15 +137,28 @@ class Filter(object):
 def main():
     parser = argparse.ArgumentParser()
     ## Required parameters
-    parser.add_argument("--input_file", default=None, type=str, required=True,
+    parser.add_argument('-i', '--input_file', required=True,
                         help="Should be a text file, no index, no header, one clean sentence per line delimited by newline \n.")
-    parser.add_argument("--dataset_code", default=None, type=dataset_code, required=True,
-                        help="First 2 characters of your name, dash, first 3 characters of the dataset name.")
+    parser.add_argument('-d', '--dataset_name', required=True,
+                        help="Name of your dataset in full - ie.  \"IMDB Movie review\" ")
+    parser.add_argument('-c', '--creator', required=True,
+                        help="Name of the person processing the file - ie. Andrea")
+
+
     args = parser.parse_args()
 
     data = read_file(args.input_file)
     df = Filter().get_dataframe(data)
-    df.to_csv( args.dataset_code.upper() + "_df", header=True)
+
+    ID_generator = GenID(args.creator)
+    ID_generator.generate(args.dataset_name, df)
+
+    output_path = './df_output/'
+
+    if not os.path.exists(output_path):
+            os.mkdir(output_path)
+
+    df.to_csv( output_path + ID_generator.code + "_df", header=True )
 
 if __name__ == '__main__':
     main()
