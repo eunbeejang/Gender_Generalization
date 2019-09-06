@@ -3,8 +3,11 @@
 
 
 Required arguments:
+
 -i/--input_file INPUT_FILE 
+
 -d/--dataset_name DATASET_NAME 
+
 -c/--creator CREATOR
 
 
