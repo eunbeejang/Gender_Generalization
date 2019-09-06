@@ -1,4 +1,4 @@
-## Filter.py
+## run.py
 
 
 
@@ -18,7 +18,7 @@ The *-i/--input_file* should be a text-based file (ie. txt,csv) containing:
 To run the code:
 
 ```
-$ python Filter.py -i INPUT_FILE.* -d "DATASET NAME" -c CREATOR
+$ python run.py -i INPUT_FILE.* -d "DATASET NAME" -c CREATOR
 
 ```
 
@@ -27,7 +27,7 @@ Example:
 
 
 ```
-$ python Filter.py -i ./test_sentences.txt -d "IMDB test" -c Andrea
+$ python run.py -i ./test_sentences.txt -d "IMDB test" -c Andrea
 
 ```
 
