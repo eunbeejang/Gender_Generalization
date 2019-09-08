@@ -132,7 +132,6 @@ def main():
     parser.add_argument('-c', '--creator', required=True,
                         help="Name of the person processing the file - ie. Andrea")
 
-
     args = parser.parse_args()
 
     data = read_file(args.input_file)
@@ -146,7 +145,13 @@ def main():
     if not os.path.exists(output_path):
             os.mkdir(output_path)
 
-    df.to_csv( output_path + ID_generator.code + "_df", header=True )
+    df.to_csv(output_path + ID_generator.code + "_df", header=True)
+
+    print("Original size (in sentences): ", len(df.index))
+    print("Size after filter (in sentences): ", len(df[df['Final candidates'] == 1]))
+
+    assert (len(df.index) - len(df[df['Final candidates'] == 1]) == len(df[df['Final candidates'] == 0])), \
+        "TOTAL MINUS FINAL CANDIDATES SHOULD EQUAL SENTENCES FILTERED OUT"
 
 if __name__ == '__main__':
     main()
