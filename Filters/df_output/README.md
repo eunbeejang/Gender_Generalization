@@ -25,7 +25,7 @@ Example:
 
 
 ```
-$ python validate.py -i ./AN-BLO_df -n20
+$ python validate.py -i ./AN-BLO_df -n 20
 
 ```
 
