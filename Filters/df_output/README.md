@@ -2,9 +2,12 @@
 
 
 
+
+
+
 Required arguments:
 
--i/--input_file INPUT_FILE : name of the input file
+-i/--input_file INPUT_FILE : Name of the input file
 
 -n/--num_rand_sent NUM_RANDOM : Number of randomly fetched sentences
 
