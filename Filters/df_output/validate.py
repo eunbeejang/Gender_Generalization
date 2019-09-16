@@ -34,12 +34,12 @@ def random_validate(file_path, num_random_out):
 def main():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-i', '--output_df_file', required=True,
-                        help="Output dataframe file")
+    parser.add_argument('-i', '--input_file', required=True,
+                        help="Name of the input file")
     parser.add_argument('-n', '--num_rand_sents', required=True,
-                        help="Number of randomly generated sentences")
+                        help="Number of randomly fetched sentences")
     args = parser.parse_args()
-    random_validate(args.output_df_file, args.num_rand_sents)
+    random_validate(args.input_file, args.num_rand_sents)
 
 
 if __name__ == '__main__':
